@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Turbo doesn't work with devise by default.
+# Keep tabs on https://github.com/heartcombo/devise/issues/5446 for a possible fix
+# Fix from https://gorails.com/episodes/devise-hotwire-turbo
 class TurboFailureApp < Devise::FailureApp
   def respond
     if request_format == :turbo_stream
@@ -9,27 +12,9 @@ class TurboFailureApp < Devise::FailureApp
     end
   end
 
-  def skip_format
+  def skip_format?
     %w[html turbo_stream */*].include? request_format.to_s
   end
-end
-
-class TurboController < ApplicationController
-  class Responder < ActionController::Responder
-    def to_turbo_stream
-      controller.render(options.merge(formats: :html))
-    rescue ActionView::MissingTemplate => e
-      raise e if get?
-
-      has_errors? && default_action
-      render rendering.options.merge(formats: :html, status: :unprocessable_entity)
-    else
-      redirect_to navigation_location
-    end
-  end
-
-  self.responder = Responder
-  respond_to :html, :turbo_stream
 end
 
 # Assuming you have not yet modified this file, each configuration option below
@@ -50,7 +35,7 @@ Devise.setup do |config|
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
-  config.parent_controller = 'TurboController'
+  config.parent_controller = 'TurboDeviseController'
 
   # ==> Mailer Configuration
   # Configure the e-mail address which will be shown in Devise::Mailer,

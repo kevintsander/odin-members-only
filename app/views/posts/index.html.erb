@@ -1,0 +1,10 @@
+<% if @posts && @posts.any? %>
+  <% @posts.each do |post| %>
+    <p><%= post.text %></p>
+    <% if user_signed_in? %>
+      <p>- <%= post.user.email %></p>
+    <% end %>
+  <% end %>
+<% else %>
+  <p>No posts</p>
+<% end %>
